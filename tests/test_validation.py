@@ -11,6 +11,7 @@ def test_validation_manifest_records_mismatch(tmp_path):
     }]}))
     report = validate_manifest(manifest, lambda _: {
         "cyclic_peptides": [], "ambiguous_or_noncyclic_candidates": [],
+        "summary": {},
     })
     assert report["totals"]["failed"] == 1
     assert report["totals"]["false_negatives"] == 1

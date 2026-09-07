@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cyclicpepomega"
-version = "0.1.0"
+version = "0.2.0"
 description = "Connectivity-first identification of cyclic peptides in PDB structures"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "CyclicPepOmega contributors"}]
-dependencies = []
+dependencies = ["numpy>=1.26"]
 
 [project.optional-dependencies]
 gemmi = ["gemmi>=0.7"]
@@ -22,6 +22,9 @@ cpo = "cyclicpepomega.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"cyclicpepomega.data" = ["*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
