@@ -10,3 +10,4 @@ build/
 *.pdb
 *.json
 !tests/fixtures/*.json
+!validation/*.json

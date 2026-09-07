@@ -1,0 +1,42 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Small public RCSB PDB validation definition. The CLI retrieves mmCIF files by PDB ID.",
+  "cases": [
+    {
+      "pdb_id": "1CWA",
+      "source": "1CWA",
+      "categories": ["head-to-tail", "noncanonical", "N-methylated", "protein-bound"],
+      "expected": {
+        "cyclic_instance_count": 1,
+        "contains": [{"chain_id": "C", "length": 11, "cyclization_type": "head-to-tail"}]
+      }
+    },
+    {
+      "pdb_id": "1NB1",
+      "source": "1NB1",
+      "categories": ["head-to-tail", "disulfide-rich", "peptide-only", "NMR-multimodel"],
+      "expected": {
+        "cyclic_instance_count": 20,
+        "contains": [{"chain_id": "A", "length": 29, "cyclization_type": "head-to-tail"}]
+      }
+    },
+    {
+      "pdb_id": "1NPO",
+      "source": "1NPO",
+      "categories": ["disulfide-constrained", "protein-bound", "multiple-peptide-entities"],
+      "expected": {
+        "cyclic_instance_count": 2,
+        "contains": [
+          {"chain_id": "B", "length": 9, "cyclization_type": "disulfide-constrained"},
+          {"chain_id": "D", "length": 9, "cyclization_type": "disulfide-constrained"}
+        ]
+      }
+    },
+    {
+      "pdb_id": "1YCR",
+      "source": "1YCR",
+      "categories": ["linear-negative-control", "protein-bound"],
+      "expected": {"cyclic_instance_count": 0, "linear_candidate_chain": "B"}
+    }
+  ]
+}
