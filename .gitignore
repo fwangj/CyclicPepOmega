@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+dist/
+build/
+*.cif
+*.mmcif
+*.pdb
+*.json
+!tests/fixtures/*.json
