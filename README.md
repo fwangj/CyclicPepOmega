@@ -1,19 +1,27 @@
 # CyclicPepOmega
 
-CyclicPepOmega is a connectivity-first pipeline for detecting cyclic peptides in
-experimental PDB structures. The first milestone accepts a PDB ID or a local
-PDB/mmCIF file and emits a JSON report containing every detected cyclic peptide
-plus ambiguous/noncyclic peptide-like candidates.
+CyclicPepOmega is a public-data-driven computational platform for cyclic-peptide
+chemical normalization, conformational analysis, structural comparison, and
+future molecular-recognition and selectivity studies. It accepts a PDB ID or a
+local PDB/mmCIF file and emits a machine-readable report of detected cyclic
+peptides plus ambiguous or noncyclic peptide-like candidates.
 
-## Current scope
+## Implemented in v0.2.0
 
 - PDB coordinates plus `LINK` and `SSBOND` records
 - mmCIF coordinates plus `_struct_conn` through the optional `gemmi` backend
 - residue recognition by backbone atom topology (`N`, `CA`, `C`), not a fixed
   amino-acid name list
-- deposited covalent bonds augmented by conservative C–N and S–S geometry
-- head-to-tail, head-to-side-chain, side-chain-to-side-chain, and
-  disulfide-constrained classification
+- deposited covalent bonds, CCD component graphs, polymer links, and conservative
+  coordinate fallbacks with explicit provenance
+- atom-level, versioned chemical identities that collapse equivalent coordinate
+  observations
+- head-to-tail, head-to-side-chain, lactam, disulfide, thioether, and
+  multiple-crosslink classification with unresolved cases retained
+- atom-level D/L and N-methylation annotation and noncanonical-residue handling
+- backbone phi/psi/omega, radius of gyration, backbone representation, and
+  atom-mapped RMSD with cyclic-permutation search
+- same-identity comparison and candidate atom-mapped analogue differences
 - preservation of original chain/residue identifiers in JSON
 
 ## Install and run
@@ -31,9 +39,9 @@ cpo map-modification 1CWA 1CWB
 
 Output files are never overwritten implicitly.
 
-Development and validation are run on `192.168.10.201` with the dedicated
-environment at `/adata/envs/cyclicpepomega`. Large structures and generated
-reports belong under `/adata/test/cyclicpepomega`, not in this repository.
+Downloaded structures and generated reports are deliberately excluded from this
+repository. The versioned public validation manifests contain only PDB IDs and
+expected annotations.
 
 ## Development test
 
@@ -43,20 +51,14 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 
 ## Important current limitations
 
-This is the first vertical slice, not yet the full atlas. Biological assembly
-expansion, complete chemical-component graph reconstruction, modification/D
-stereochemistry/N-methyl annotation, target/interface analysis, descriptors,
-database persistence, and conformational comparison remain later milestones.
-Geometry-inferred bonds are deliberately conservative and retain linear or
-unresolved components in the ambiguity section rather than silently dropping
-them.
-
-Version 0.2 adds embedded CCD atom/bond parsing, label/auth identifier
-preservation, versioned chemical identities, atom-level D/L and N-methyl
-annotations, lactam/thioether/linker classification, basic torsions/Rg and
-same-identity backbone comparison. Pure disulfide topology cannot by itself
-distinguish a cyclic peptide from a disulfide-rich protein; such cases require
-versioned public entity-scope evidence or remain unresolved.
+This is an early research-software baseline, not a complete atlas. Biological
+assembly expansion, exhaustive CCD reconstruction, IMHB and SASA analysis,
+ring-shape descriptors, production interface fingerprints, curated matched-pair
+mining, databases, APIs, and the website are planned rather than implemented.
+Pure disulfide topology cannot by itself distinguish a cyclic peptide from a
+disulfide-rich protein; such cases require versioned entity-scope evidence or
+remain unresolved. Coordinate-inferred bonds never silently override deposited
+chemistry.
 
 ## Scientific direction
 
@@ -65,3 +67,7 @@ molecular recognition → selectivity**. The current release establishes public-
 parsing and connectivity-based candidate detection; it does not yet calculate
 conformational energies, predict permeability, infer binding affinity, or claim a
 complete PDB census.
+
+See [the architecture](docs/architecture.md), [scientific scope](docs/scientific_scope.md),
+[data model](docs/data_model.md), [roadmap](docs/roadmap.md), and
+[v0.2.0 baseline manifest](docs/BASELINE_v0.2.0.md).

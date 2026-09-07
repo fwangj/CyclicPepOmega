@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use CyclicPepOmega, please cite this software repository."
+title: CyclicPepOmega
+version: 0.2.0
+date-released: 2026-09-07
+type: software
+authors:
+  - name: "CyclicPepOmega contributors"
+repository-code: "https://github.com/fwangj/CyclicPepOmega"
+license: MIT
