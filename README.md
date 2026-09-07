@@ -24,6 +24,9 @@ cyclicpepomega analyze 8ABC
 cpo analyze structure.cif -o report.json
 cpo batch pdb_ids.txt -o reports.json
 cpo validate validation/public_set.json -o validation-results.json
+cpo validate validation/public_set_v2.json --structure-dir /adata/test/cyclicpepomega/mmcif
+cpo compare 1CWA 2RMC
+cpo map-modification 1CWA 1CWB
 ```
 
 Output files are never overwritten implicitly.
@@ -47,6 +50,13 @@ database persistence, and conformational comparison remain later milestones.
 Geometry-inferred bonds are deliberately conservative and retain linear or
 unresolved components in the ambiguity section rather than silently dropping
 them.
+
+Version 0.2 adds embedded CCD atom/bond parsing, label/auth identifier
+preservation, versioned chemical identities, atom-level D/L and N-methyl
+annotations, lactam/thioether/linker classification, basic torsions/Rg and
+same-identity backbone comparison. Pure disulfide topology cannot by itself
+distinguish a cyclic peptide from a disulfide-rich protein; such cases require
+versioned public entity-scope evidence or remain unresolved.
 
 ## Scientific direction
 
