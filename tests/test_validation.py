@@ -13,4 +13,5 @@ def test_validation_manifest_records_mismatch(tmp_path):
         "cyclic_peptides": [], "ambiguous_or_noncyclic_candidates": [],
     })
     assert report["totals"]["failed"] == 1
+    assert report["totals"]["false_negatives"] == 1
     assert report["cases"][0]["status"] == "failed"

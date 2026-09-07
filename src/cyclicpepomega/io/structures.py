@@ -77,11 +77,14 @@ def parse_mmcif(path: str | Path, structure_id: str | None = None) -> StructureD
     # gemmi resolves both _struct_conn and legacy LINK records to connections.
     bonds = []
     for conn in structure.connections:
+        connection_type = str(conn.type).lower()
+        if not any(token in connection_type for token in ("covale", "disulf")):
+            continue
         p1, p2 = conn.partner1, conn.partner2
         k1 = ResidueKey(1, p1.chain_name or "_", str(p1.res_id.seqid.num), p1.res_id.seqid.icode.strip())
         k2 = ResidueKey(1, p2.chain_name or "_", str(p2.res_id.seqid.num), p2.res_id.seqid.icode.strip())
         if k1 in residues and k2 in residues:
-            kind = "disulfide" if "disulf" in str(conn.type).lower() else "covalent"
+            kind = "disulfide" if "disulf" in connection_type else "covalent"
             bonds.append(CovalentBond(k1, p1.atom_name, k2, p2.atom_name, "struct_conn", kind))
     method = None
     if hasattr(structure, "info"):
