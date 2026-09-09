@@ -7,6 +7,9 @@ from typing import Iterable
 import numpy as np
 
 from ..core.schema import CovalentBond, Residue, ResidueKey
+from .imhb import intramolecular_hydrogen_bonds
+from .ring_shape import ring_shape_descriptors
+from .sasa import solvent_exposure
 
 BACKBONE_ATOMS = ("N", "CA", "C")
 
@@ -93,6 +96,9 @@ def describe_conformation(
 ) -> dict[str, object]:
     cyclic = is_backbone_cyclic(keys, bonds)
     key = f"{structure_id}|{keys[0].model}|{identity_id}|experimental"
+    imhb = intramolecular_hydrogen_bonds(keys, residues)
+    sasa = solvent_exposure(keys, residues)
+    ring_shape = ring_shape_descriptors(keys, residues)
     return {
         "conformation_id": f"conf_{hashlib.sha256(key.encode()).hexdigest()[:24]}",
         "kind": "experimental_bound_asymmetric_unit_contact" if has_macromolecular_contact else "experimental_context_unresolved",
@@ -101,8 +107,16 @@ def describe_conformation(
         "torsions": backbone_torsions(keys, residues, cyclic),
         "radius_of_gyration_angstrom": radius_of_gyration(keys, residues),
         "backbone_coordinates": backbone_coordinates(keys, residues),
-        "method": {"name": "cyclicpepomega_geometry", "version": "1"},
-        "warnings": ["geometric (not mass-weighted) radius of gyration"]
+        "imhb": imhb,
+        "sasa": sasa,
+        "ring_shape": ring_shape,
+        "method": {"name": "cyclicpepomega_geometry", "version": "2"},
+        "warnings": [
+            "geometric (not mass-weighted) radius of gyration",
+            *imhb.get("warnings", []),
+            *sasa.get("warnings", []),
+            *ring_shape.get("warnings", []),
+        ]
     }
 
 
@@ -158,18 +172,41 @@ def compare_backbones(
             if x is not None and y is not None:
                 deltas.append(abs(((x - y + 180.0) % 360.0) - 180.0))
     torsion_rms = math.sqrt(sum(delta * delta for delta in deltas) / len(deltas)) if deltas else None
+    left_conf = left["conformation"]
+    right_conf = right["conformation"]
+    left_sasa = left_conf.get("sasa", {})
+    right_sasa = right_conf.get("sasa", {})
+    left_ring = left_conf.get("ring_shape", {})
+    right_ring = right_conf.get("ring_shape", {})
+    left_imhb = set(str(left_conf.get("imhb", {}).get("fingerprint", "")).split(";")) - {""}
+    right_imhb = set(str(right_conf.get("imhb", {}).get("fingerprint", "")).split(";")) - {""}
     return {
-        "left_conformation_id": left["conformation"]["conformation_id"],
-        "right_conformation_id": right["conformation"]["conformation_id"],
+        "left_conformation_id": left_conf["conformation_id"],
+        "right_conformation_id": right_conf["conformation_id"],
         "backbone_rmsd_angstrom": rmsd,
         "mapped_backbone_atom_count": atom_count,
         "cyclic_permutation_shift": shift,
         "component_substitution_count": substitutions,
         "torsion_rms_difference_degrees": torsion_rms,
         "mapped_torsion_count": len(deltas),
-        "method": {"name": "Kabsch_same_component_cyclic_permutations", "version": "1"},
+        "delta_radius_of_gyration_angstrom": _delta(left_conf.get("radius_of_gyration_angstrom"), right_conf.get("radius_of_gyration_angstrom")),
+        "delta_imhb_count": _delta(left_conf.get("imhb", {}).get("count"), right_conf.get("imhb", {}).get("count")),
+        "gained_imhb_fingerprint_tokens": sorted(right_imhb - left_imhb),
+        "lost_imhb_fingerprint_tokens": sorted(left_imhb - right_imhb),
+        "delta_total_sasa_angstrom2": _delta(left_sasa.get("total_sasa_angstrom2"), right_sasa.get("total_sasa_angstrom2")),
+        "delta_polar_sasa_angstrom2": _delta(left_sasa.get("polar_sasa_angstrom2"), right_sasa.get("polar_sasa_angstrom2")),
+        "delta_nonpolar_sasa_angstrom2": _delta(left_sasa.get("nonpolar_sasa_angstrom2"), right_sasa.get("nonpolar_sasa_angstrom2")),
+        "delta_ring_planarity_rmsd_angstrom": _delta(left_ring.get("planarity_rmsd_angstrom"), right_ring.get("planarity_rmsd_angstrom")),
+        "delta_ring_asphericity": _delta(left_ring.get("asphericity"), right_ring.get("asphericity")),
+        "method": {"name": "Kabsch_same_component_cyclic_permutations", "version": "2"},
         "warnings": [
             "reverse sequence and side-chain symmetry mappings are not evaluated",
             *( ["backbone comparison includes mapped positions with component substitutions"] if substitutions else [] ),
         ],
     }
+
+
+def _delta(left: object, right: object) -> float | None:
+    if left is None or right is None:
+        return None
+    return float(right) - float(left)

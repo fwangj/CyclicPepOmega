@@ -13,6 +13,7 @@ from .io.structures import parse_structure
 from .validation import validate_manifest
 from .conformation.geometry import compare_backbones
 from .comparison.modification import build_matched_analogue_pair
+from .comparison.discovery import discover_analogue_candidates
 
 
 def _download_pdb(identifier: str, destination: Path) -> Path:
@@ -44,6 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
     analyze = sub.add_parser("analyze", help="analyze a PDB ID or local PDB/mmCIF file")
     analyze.add_argument("source")
     analyze.add_argument("-o", "--output", type=Path, help="write JSON to a new file")
+    conformation = sub.add_parser("conformation", help="report conformation descriptors for detected cyclic peptides")
+    conformation.add_argument("source")
+    conformation.add_argument("-o", "--output", type=Path, help="write JSON to a new file")
+    interface = sub.add_parser("interface", help="report biological-context-aware interface observations")
+    interface.add_argument("source")
+    interface.add_argument("-o", "--output", type=Path, help="write JSON to a new file")
     batch = sub.add_parser("batch", help="analyze PDB IDs/files listed one per line")
     batch.add_argument("list_file", type=Path)
     batch.add_argument("-o", "--output", type=Path, help="write JSON array to a new file")
@@ -59,6 +66,11 @@ def build_parser() -> argparse.ArgumentParser:
     map_mod.add_argument("source", help="first PDB ID or structure file")
     map_mod.add_argument("other", help="second PDB ID or structure file")
     map_mod.add_argument("-o", "--output", type=Path, help="write mapping JSON to a new file")
+    discover = sub.add_parser("discover-analogues", help="discover machine-reviewable candidate analogue pairs from a bounded input list")
+    discover.add_argument("list_file", type=Path, help="PDB IDs or local files, one per line")
+    discover.add_argument("--structure-dir", type=Path, help="use cached <PDB_ID>.cif files from this directory")
+    discover.add_argument("--max-component-edits", type=int, default=1)
+    discover.add_argument("-o", "--output", type=Path, help="write discovery JSON to a new file")
     return parser
 
 
@@ -77,6 +89,22 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "analyze":
             payload = _analyze(args.source)
+        elif args.command == "conformation":
+            report = _analyze(args.source)
+            payload = {
+                "schema_version": report["schema_version"],
+                "source": args.source,
+                "conformations": [item["conformation"] for item in report["cyclic_peptides"]],
+                "ambiguous_conformations": [item["conformation"] for item in report["ambiguous_or_noncyclic_candidates"]],
+            }
+        elif args.command == "interface":
+            report = _analyze(args.source)
+            payload = {
+                "schema_version": report["schema_version"],
+                "source": args.source,
+                "assembly": report.get("assembly"),
+                "interfaces": [item["interface"] for item in report["cyclic_peptides"] if item.get("interface")],
+            }
         elif args.command == "batch":
             sources = [line.strip() for line in args.list_file.read_text().splitlines() if line.strip() and not line.lstrip().startswith("#")]
             payload = [_analyze(source) for source in sources]
@@ -119,6 +147,21 @@ def main(argv: list[str] | None = None) -> int:
                 "sources": [args.source] + ([args.other] if args.other else []),
                 "comparisons": comparisons,
             }
+        elif args.command == "discover-analogues":
+            sources = [line.strip() for line in args.list_file.read_text().splitlines() if line.strip() and not line.lstrip().startswith("#")]
+            reports = []
+            warnings = []
+            for source in sources:
+                try:
+                    if args.structure_dir and len(source) == 4 and source.isalnum():
+                        cached = args.structure_dir / f"{source.upper()}.cif"
+                        reports.append(_analyze(str(cached) if cached.exists() else source))
+                    else:
+                        reports.append(_analyze(source))
+                except (OSError, RuntimeError, ValueError) as exc:
+                    warnings.append({"source": source, "warning": str(exc)})
+            payload = discover_analogue_candidates(reports, max_component_edits=args.max_component_edits)
+            payload["source_warnings"] = warnings
         else:
             left_report, right_report = _analyze(args.source), _analyze(args.other)
             if not left_report["cyclic_peptides"] or not right_report["cyclic_peptides"]:

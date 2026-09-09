@@ -7,7 +7,9 @@ from .core.schema import CovalentBond, Residue, ResidueKey, StructureData, atom_
 from .chemistry.residues import noncanonical_annotations
 from .chemistry.identity import atom_level_graph, annotate_residue, chemical_identity, modification_annotations
 from .chemistry.scope import disulfide_entity_scope
+from .assembly import assembly_summary_for_structure
 from .conformation.geometry import describe_conformation
+from .recognition.interface import peptide_target_contacts
 
 PEPTIDE_CN_MAX = 1.9
 DISULFIDE_SS_MAX = 2.35
@@ -308,6 +310,20 @@ def analyze_structure(data: StructureData, config: DetectionConfig | None = None
         payload["conformation"] = describe_conformation(
             data.structure_id, identity_id, ordered, data.residues, edges, bool(target_chains)
         )
+        target_keys = [
+            key for key, residue in data.residues.items()
+            if key not in component
+            and key.model == ordered[0].model
+            and key.chain in {chain for chain, _ in target_chains}
+        ]
+        payload["interface"] = peptide_target_contacts(
+            payload["conformation"]["conformation_id"],
+            payload["instance_id"],
+            ordered,
+            target_keys,
+            data.residues,
+            assembly_id="asymmetric_unit",
+        ) if target_keys else None
         if kind in {"linear peptide", "ambiguous_unresolved"}:
             if len(peptide_component) <= config.max_ambiguous_residues:
                 reason = "no detected ring closure" if kind == "linear peptide" else "crosslinked polymer has unresolved peptide/macrocycle scope"
@@ -318,6 +334,7 @@ def analyze_structure(data: StructureData, config: DetectionConfig | None = None
     return {
         "schema_version": "0.2.0",
         "structure": {"id": data.structure_id, **data.metadata},
+        "assembly": assembly_summary_for_structure(data),
         "peptide_like_entities": entities,
         "cyclic_peptides": peptides,
         "ambiguous_or_noncyclic_candidates": ambiguous,

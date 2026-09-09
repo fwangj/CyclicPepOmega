@@ -40,3 +40,8 @@ traceable to deposited, CCD, polymer, or coordinate-fallback evidence.
 - reconstruct components when CCD or coordinate atoms are incomplete
 - implement IMHB, SASA/polar SASA, ring-shape, and mature interface fingerprints
 - curate chemically reviewed matched analogue pairs and target-comparison series
+
+
+## Post-Baseline Development Layer
+
+The current development layer extends the v0.2.0 connectivity-first baseline with biological assembly metadata, conformation descriptors, candidate analogue discovery, and interface observations. Biological assembly coordinate generation is not yet implemented; contacts remain asymmetric-unit observations unless assembly provenance is explicit.

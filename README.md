@@ -71,3 +71,17 @@ complete PDB census.
 See [the architecture](docs/architecture.md), [scientific scope](docs/scientific_scope.md),
 [data model](docs/data_model.md), [roadmap](docs/roadmap.md), and
 [v0.2.0 baseline manifest](docs/BASELINE_v0.2.0.md).
+
+
+## Development Features After v0.2.0
+
+Current main adds development-stage conformation-analysis infrastructure on top of the frozen v0.2.0 baseline:
+
+- biological assembly metadata parsing for mmCIF files, with asymmetric-unit versus assembly-context warnings;
+- intramolecular hydrogen-bond fingerprints from explicit heavy-atom geometry;
+- deterministic SASA and polar-exposure proxy descriptors;
+- ring-shape descriptors based on principal moments, planarity, compactness, and backbone distance fingerprints;
+- machine-reviewable analogue candidate discovery from bounded public input lists;
+- a minimal interface/contact observation layer linked to conformation and assembly provenance.
+
+These features support manual scientific review of public Modification -> Conformation candidate pairs. They do not claim causality, permeability, docking, selectivity, or energetics.

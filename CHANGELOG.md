@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Added biological assembly metadata summaries for mmCIF input.
+- Added IMHB, SASA/polar exposure, and ring-shape conformation descriptors.
+- Added conformation-delta fields to backbone comparisons.
+- Added deterministic interface/contact observation foundation.
+- Added bounded automatic analogue candidate discovery.
+- Added CLI commands for conformation, interface, and analogue discovery outputs.
+- Added targeted tests for the new development layer.
+
+
 All notable changes to this project are documented here.
 
 ## 0.2.0 — 2026-09-07

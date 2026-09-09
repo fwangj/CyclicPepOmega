@@ -19,3 +19,14 @@ IMHB, SASA, polar exposure, biological-assembly expansion, energy or population.
 An asymmetric-unit macromolecular contact is labeled as such; absence of such a
 contact is not called experimental apo.
 
+
+
+## Conformation V2 Descriptors
+
+Development builds after v0.2.0 attach additional transparent descriptors to each detected cyclic-peptide conformation:
+
+- `imhb`: intramolecular hydrogen-bond candidates inferred from observed heavy-atom distances. Hydrogens and protonation states are not added silently.
+- `sasa`: deterministic neighbor-occlusion SASA proxy with total, polar, nonpolar, exposed donor/acceptor, and buried polar-atom counts. This is not a permeability model.
+- `ring_shape`: rigid-transform-invariant backbone descriptors including principal moments, asphericity, planarity RMSD, compactness, and distance-matrix fingerprint.
+
+Backbone comparisons now report deltas for Rg, IMHB count/fingerprint tokens, SASA, polar SASA, nonpolar SASA, ring planarity, and ring asphericity. Missing values remain `null`; unavailable descriptors are not converted to zero.

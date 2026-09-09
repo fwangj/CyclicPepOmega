@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ..assembly import assembly_records_to_dicts, parse_mmcif_assembly_metadata
 from ..core.schema import (
     Atom, ComponentAtom, ComponentBond, ComponentDefinition, CovalentBond,
     EntityDefinition, Residue, ResidueKey, StructureData,
@@ -192,7 +193,12 @@ def parse_mmcif(path: str | Path, structure_id: str | None = None) -> StructureD
             method = structure.info["_exptl.method"]
         except (KeyError, TypeError):
             pass
-    metadata = {"format": "mmcif", "experimental_method": method, "resolution_angstrom": structure.resolution or None}
+    metadata = {
+        "format": "mmcif",
+        "experimental_method": method,
+        "resolution_angstrom": structure.resolution or None,
+        "biological_assemblies": assembly_records_to_dicts(parse_mmcif_assembly_metadata(path)),
+    }
     return StructureData(
         (structure_id or structure.name or path.stem).upper(), residues, bonds,
         metadata, components, entities,
