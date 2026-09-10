@@ -11,3 +11,6 @@ build/
 *.json
 !tests/fixtures/*.json
 !validation/*.json
+
+# Local agent task prompts are handoff inputs, not project source.
+CyclicPepOmega_Overnight_Autonomous_Development_Prompt.md
